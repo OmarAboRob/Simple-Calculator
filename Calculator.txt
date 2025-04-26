@@ -1,0 +1,340 @@
+dosseg
+.model small
+.data
+msg db "Please Enter your first number",10,13,"$"
+msg1 db "Please Enter your second number",10,13,"$"
+msg2 db "Please Enter your operator: + , - , * , /",10,13,"$"
+msg3 db "Invalid Number or operator",10,13,"$"
+msg4 db "out of range ",10,13,"$"
+msg5 db "Its not allowed to divide by zero",10,13,"$"
+msg6 db "Result:  ","$"
+msg7 db "Reminder:    ","$"
+msg8 db 10,13,"$"
+num dw 10
+.code
+
+main:
+mov ax,@data
+mov ds,ax
+mov ah,9
+mov dx,offset msg 
+int 21h
+mov CX,0
+mov DX,0
+mov BX,0
+mov AX,0
+
+
+
+; First loop to read the first number
+cin:
+mov ah,1
+int 21h
+cmp al,13
+je second
+cmp al,'0'
+jb exit
+cmp al,'9'
+ja exit
+sub al,30h
+mov bl,al
+mov al,10
+mul cl
+MOV CX,AX
+add CX,BX
+cmp cx,00ffh
+ja more
+JMP CIN
+; The first number in CX
+
+
+
+
+; Second loop to read the second number
+second:
+mov BX,0
+mov dx,offset msg1
+mov ah,9
+int 21h
+mov dx,0
+cin1:
+mov ah,1
+int 21h
+cmp al,13
+je op
+cmp al,'0'
+jb exit
+cmp al,'9'
+ja exit
+sub al,30h
+mov bl,al
+mov al,10
+mul dl
+MOV DX,AX
+add DX,BX
+cmp dx,00ffh
+ja more
+JMP CIN1
+; The second number in DX
+
+; This is a middle jump
+exit:
+jmp exit1
+
+
+
+op:
+push dx
+mov ah,9
+mov dx,offset msg8 
+int 21h
+pop dx
+push dx
+mov dx,offset msg2
+mov ah,9
+int 21h
+pop dx
+mov ah,1
+int 21h
+push dx
+mov ah,9
+mov dx,offset msg8 
+int 21h
+pop dx
+cmp al,'+'
+je plus
+cmp al,'-'
+je minus
+cmp al,'*'
+je darb
+cmp al,'/'
+je taqs
+
+; This is a middle jump
+jmp exit
+more:
+jmp more1
+;end of middle jumps
+
+
+;addition code
+plus:
+add cx,dx
+cmp cx,00ffh
+ja more
+mov ax,cx
+mov dx,0
+mov bx ,sp
+mov cx,10 
+again: 
+div cx
+push dx
+mov dx,0
+cmp AX,0
+je print
+jmp again
+print:
+cmp sp,bx
+je endd
+pop DX
+add dl,30h
+mov ah,2
+int 21h
+jmp print
+
+
+
+
+; This is a middle jump
+exit1:
+jmp exit2
+endd:
+jmp endd1
+taqs:
+jmp taqse
+;end of middle jumps
+
+
+;subtract code
+minus:
+sub cx,dx
+jns negg
+mov dl,'-'
+mov ah,2
+int 21h
+neg cx
+negg:
+mov ax,cx
+mov dx,0
+mov bx ,sp
+mov cx,10 
+again1: 
+div cx
+push dx
+mov dx,0
+cmp AX,0
+je print1
+jmp again1
+print1:
+cmp sp,bx
+je endd1
+pop DX
+add dl,30h
+mov ah,2
+int 21h
+jmp print1
+
+
+
+; This is a middle jump
+more1:
+jmp more2
+endd1:
+jmp endd2
+;end of middle jumps
+
+
+
+;multiplication code
+darb:
+
+mov ax,cx
+mul dx
+cmp ax,00ffh
+ja more
+mov bx ,sp
+again3: 
+mov cx,10 
+div cx
+push dx
+mov dx,0
+cmp AX,0
+je print3
+jmp again3
+print3:
+cmp sp,bx
+je endd2
+pop DX
+add dl,30h
+mov ah,2
+int 21h
+jmp print3 
+
+
+
+; This is a middle jump
+more2:
+jmp more3
+exit2:
+jmp exit3
+endd2:
+jmp endd3
+;end of middle jumps
+
+
+
+; The division code 
+taqse:
+cmp DX,0
+jne cont
+mov ah,9
+mov dx,offset msg5
+int 21h
+jmp endd3
+cont:
+push dx
+mov dx,offset msg6
+mov ah,9
+int 21h
+pop dx
+mov ax,cx
+mov cx,dx
+mov dx,0
+div cx
+mov cx,dx
+mov dx,0
+mov bx ,sp
+again4: 
+div num
+push dx
+mov dx,0
+cmp AX,0
+je print4
+jmp again4
+print4:
+cmp sp,bx
+je demo
+pop DX
+add dl,30h
+mov ah,2
+int 21h
+jmp print4 
+
+
+
+; This is a middle jump
+more3:
+jmp more4
+exit3:
+jmp exit4
+endd3:
+jmp endd4
+;end of middle jumps
+
+
+; To print reminder
+demo:
+push dx
+mov ah,9
+mov dx,offset msg8 
+int 21h
+pop dx
+mov dx,offset msg7
+mov ah,9
+int 21h
+mov ax,cx
+mov dx,0
+mov bx ,sp
+again2: 
+div num
+push dx
+mov dx,0
+cmp AX,0
+je print2
+jmp again2
+print2:
+cmp sp,bx
+je endd4
+pop DX
+add dl,30h
+mov ah,2
+int 21h
+jmp print2 
+
+
+
+more4:
+mov ah,9
+mov dx,offset msg8 
+int 21h
+mov ah,9
+mov dx,offset msg4 
+int 21h
+mov ah,9
+mov dx,offset msg8 
+int 21h
+jmp endd4
+exit4:
+mov ah,9
+mov dx,offset msg8 
+int 21h
+mov ah,9
+mov dx,offset msg3 
+int 21h
+mov ah,9
+mov dx,offset msg8
+int 21h
+endd4:
+mov ah,4ch
+int 21h
+end main
